@@ -76,7 +76,7 @@ type Package struct {
 	Repository                string
 }
 
-func (c *client) Describe(pkg string) (*Package, error) {
+func (c *client) DescribePackage(pkg string) (*Package, error) {
 	col := c.newCollector()
 	p := &Package{}
 	errs := []error{}

@@ -54,7 +54,7 @@ func packageInfo() {
 	}
 	pkg := os.Args[2]
 	c := pkggodevclient.New()
-	d, err := c.Describe(pkg)
+	d, err := c.DescribePackage(pkg)
 	if err != nil {
 		panic(err)
 	}
