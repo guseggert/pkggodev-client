@@ -123,17 +123,15 @@ func (c *client) Describe(pkg string) (*Package, error) {
 		p.Published = t.Format("2006-01-02")
 	})
 	col.OnHTML(".UnitHeader-titleHeading", func(e *colly.HTMLElement) {
-	LOOP:
-		for next := e.DOM.Next(); ; {
+		for next := e.DOM.Next(); ; next = next.Next() {
 			switch next.Text() {
 			case "package":
 				p.IsPackage = true
 			case "module":
 				p.IsModule = true
 			default:
-				break LOOP
+				return
 			}
-			next = next.Next()
 		}
 	})
 
