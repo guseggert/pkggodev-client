@@ -1,0 +1,1 @@
+This is a client for the valuable data at pkg.go.dev, allowing you to programmatically find e.g. what code depends on your code, license information, etc. Since pkg.go.dev has no API, this scrapes the website to extract the data.
