@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -10,15 +11,17 @@ import (
 func main() {
 	action := os.Args[1]
 	switch action {
-	case "imports":
-		imports()
+	case "imported-by":
+		importedBy()
+	case "package-info":
+		packageInfo()
 	default:
 		fmt.Fprintf(os.Stderr, "unknown action '%s'", action)
 		os.Exit(1)
 	}
 }
 
-func imports() {
+func importedBy() {
 	if len(os.Args) < 3 {
 		fmt.Fprintf(os.Stderr, "must provide at least one package\n")
 		os.Exit(1)
@@ -28,7 +31,7 @@ func imports() {
 	importSet := map[string]bool{}
 	for _, pkg := range pkgs {
 		c := pkggodevclient.New()
-		imps, err := c.Imports(pkg)
+		imps, err := c.ImportedBy(pkg)
 		if err != nil {
 			panic(err)
 		}
@@ -42,4 +45,22 @@ func imports() {
 	for _, imp := range imports {
 		fmt.Println(imp)
 	}
+}
+
+func packageInfo() {
+	if len(os.Args) != 3 {
+		fmt.Fprintf(os.Stderr, "must provide exactly one package\n")
+		os.Exit(1)
+	}
+	pkg := os.Args[2]
+	c := pkggodevclient.New()
+	d, err := c.Describe(pkg)
+	if err != nil {
+		panic(err)
+	}
+	b, err := json.Marshal(d)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(b))
 }

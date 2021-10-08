@@ -44,7 +44,7 @@ func withHTTPServer(pattern string, handler http.HandlerFunc, f func(addr string
 	stopped.Wait()
 }
 
-func TestClient_Imports(t *testing.T) {
+func TestClient_ImportedBy(t *testing.T) {
 	cases := []struct {
 		name            string
 		html            string
@@ -85,7 +85,7 @@ func TestClient_Imports(t *testing.T) {
 				rw.Write([]byte(c.html))
 			}, func(addr string) {
 				client := New(WithBaseURL("http://" + addr))
-				imps, err := client.Imports("somepackage")
+				imps, err := client.ImportedBy("somepackage")
 				if c.expectedErr != "" {
 					assert.Contains(t, err.Error(), c.expectedErr)
 					return
