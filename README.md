@@ -4,8 +4,10 @@ Some examples:
 
 ```
 $ go build ./cmd/pkggodev
-$ ./pkggodev package-info github.com/ipfs/go-ipfs | jq .
+
+$ ./pkggodev package-info github.com/ipfs/go-ipfs | jq
 {
+  "Package": "github.com/ipfs/go-ipfs",
   "IsModule": true,
   "IsPackage": true,
   "Version": "v0.10.0",
@@ -18,7 +20,7 @@ $ ./pkggodev package-info github.com/ipfs/go-ipfs | jq .
   "Repository": "github.com/ipfs/go-ipfs"
 }
 
-$ ./pkggodev imported-by github.com/ipfs/go-ipfs | head
+$ ./pkggodev imported-by github.com/ipfs/go-ipfs | jq -r .ImportedBy[] | head
 gitee.com/Crazyrw/go-ipfs/cmd/ipfs
 gitee.com/Crazyrw/go-ipfs/core
 gitee.com/Crazyrw/go-ipfs/core/commands
@@ -30,4 +32,10 @@ github.com/Angie3120/go-ipfs/core/corehttp
 github.com/BDWare/go-ipfs/cmd/ipfs
 github.com/BDWare/go-ipfs/core
 
+$ ./pkggodev search yaml | jq -r '.Results[].Package' | head -n 5
+gopkg.in/yaml.v2
+gopkg.in/yaml.v3
+github.com/ghodss/yaml
+sigs.k8s.io/yaml
+sigs.k8s.io/kustomize/kyaml/yaml
 ```

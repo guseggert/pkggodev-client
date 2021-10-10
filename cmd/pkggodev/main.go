@@ -8,59 +8,97 @@ import (
 	pkggodevclient "github.com/guseggert/pkggodev-client"
 )
 
+var commands = map[string]func(){
+	"imported-by":  importedBy,
+	"package-info": packageInfo,
+	"versions":     versions,
+	"search":       search,
+}
+
 func main() {
-	action := os.Args[1]
-	switch action {
-	case "imported-by":
-		importedBy()
-	case "package-info":
-		packageInfo()
-	default:
-		fmt.Fprintf(os.Stderr, "unknown action '%s'", action)
-		os.Exit(1)
+	cmd := os.Args[1]
+	cmdFunc, ok := commands[cmd]
+	if !ok {
+		complainAndDie(fmt.Sprintf("unknown command '%s'", cmd))
+	}
+	cmdFunc()
+}
+
+func search() {
+	if len(os.Args) != 3 {
+		complainAndDie("usage: pkggodev search <query>")
+	}
+	query := os.Args[2]
+	c := pkggodevclient.New()
+	res, err := c.Search(query)
+	if err != nil {
+		complainAndDie(err)
+	}
+	b, err := json.Marshal(res)
+	if err != nil {
+		complainAndDie(err)
+	}
+	fmt.Println(string(b))
+}
+
+func versions() {
+	if len(os.Args) < 3 {
+		complainAndDie("must provide at least one package")
+	}
+	pkgs := os.Args[2:]
+	c := pkggodevclient.New()
+	for _, pkg := range pkgs {
+		versions, err := c.Versions(pkg)
+		if err != nil {
+			complainAndDie(err)
+		}
+		b, err := json.Marshal(versions)
+		if err != nil {
+			complainAndDie(err)
+		}
+		fmt.Println(string(b))
 	}
 }
 
 func importedBy() {
 	if len(os.Args) < 3 {
-		fmt.Fprintf(os.Stderr, "must provide at least one package\n")
-		os.Exit(1)
+		complainAndDie("must provide at least one package")
 	}
 	pkgs := os.Args[2:]
-	imports := []string{}
-	importSet := map[string]bool{}
+	c := pkggodevclient.New()
 	for _, pkg := range pkgs {
-		c := pkggodevclient.New()
-		imps, err := c.ImportedBy(pkg)
+		importedBy, err := c.ImportedBy(pkg)
 		if err != nil {
-			panic(err)
+			complainAndDie(err)
 		}
-		for _, imp := range imps {
-			if _, ok := importSet[imp]; !ok {
-				imports = append(imports, imp)
-				importSet[imp] = true
-			}
+		b, err := json.Marshal(importedBy)
+		if err != nil {
+			complainAndDie(err)
 		}
-	}
-	for _, imp := range imports {
-		fmt.Println(imp)
+		fmt.Println(string(b))
 	}
 }
 
 func packageInfo() {
-	if len(os.Args) != 3 {
-		fmt.Fprintf(os.Stderr, "must provide exactly one package\n")
-		os.Exit(1)
+	if len(os.Args) < 3 {
+		complainAndDie("must provide at least one package")
 	}
-	pkg := os.Args[2]
+	pkgs := os.Args[2:]
 	c := pkggodevclient.New()
-	d, err := c.DescribePackage(pkg)
-	if err != nil {
-		panic(err)
+	for _, pkg := range pkgs {
+		d, err := c.DescribePackage(pkg)
+		if err != nil {
+			complainAndDie(err)
+		}
+		b, err := json.Marshal(d)
+		if err != nil {
+			complainAndDie(err)
+		}
+		fmt.Println(string(b))
 	}
-	b, err := json.Marshal(d)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(string(b))
+}
+
+func complainAndDie(v interface{}) {
+	fmt.Fprintf(os.Stderr, "%v\n", v)
+	os.Exit(1)
 }
