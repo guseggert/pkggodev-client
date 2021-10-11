@@ -90,7 +90,7 @@ func TestClient_ImportedBy(t *testing.T) {
 				rw.Write([]byte(c.html))
 			}, func(addr string) {
 				client := New(WithBaseURL("http://" + addr))
-				importedBy, err := client.ImportedBy("somepackage")
+				importedBy, err := client.ImportedBy(ImportedByRequest{Package: "somepackage"})
 				if c.expectErrContains != "" {
 					assert.Contains(t, err.Error(), c.expectErrContains)
 					return
@@ -181,7 +181,9 @@ func TestClient_DescribePackage(t *testing.T) {
 				rw.Write([]byte(c.html))
 			}, func(addr string) {
 				client := New(WithBaseURL("http://" + addr))
-				pkg, err := client.DescribePackage("somepackage")
+				pkg, err := client.DescribePackage(DescribePackageRequest{
+					Package: "somepackage",
+				})
 				if c.expectErrContains != "" {
 					assert.Contains(t, err.Error(), c.expectErrContains)
 					return
