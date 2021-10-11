@@ -32,7 +32,7 @@ github.com/Angie3120/go-ipfs/core/corehttp
 github.com/BDWare/go-ipfs/cmd/ipfs
 github.com/BDWare/go-ipfs/core
 
-$ ./pkggodev search yaml | jq -r '.Results[].Package' | head -n 5
+$ ./pkggodev search yaml | jq -r .Results[].Package | head -n 5
 gopkg.in/yaml.v2
 gopkg.in/yaml.v3
 github.com/ghodss/yaml

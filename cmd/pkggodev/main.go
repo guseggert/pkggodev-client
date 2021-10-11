@@ -6,99 +6,108 @@ import (
 	"os"
 
 	pkggodevclient "github.com/guseggert/pkggodev-client"
+	"github.com/spf13/cobra"
 )
 
-var commands = map[string]func(){
-	"imported-by":  importedBy,
-	"package-info": packageInfo,
-	"versions":     versions,
-	"search":       search,
+var rootCmd = cobra.Command{
+	Use:   "pkggodev",
+	Short: "CLI interface for pkg.go.dev",
+}
+
+func init() {
+	rootCmd.AddCommand(&cobra.Command{
+		Use:           "imported-by package [packages...]",
+		Short:         "show the packages that import the given package(s)",
+		Args:          cobra.MinimumNArgs(1),
+		SilenceUsage:  true,
+		SilenceErrors: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			client := pkggodevclient.New()
+			for _, pkg := range args {
+				importedBy, err := client.ImportedBy(pkg)
+				if err != nil {
+					return err
+				}
+				b, err := json.Marshal(importedBy)
+				if err != nil {
+					return err
+				}
+				fmt.Println(string(b))
+			}
+			return nil
+		},
+	})
+	rootCmd.AddCommand(&cobra.Command{
+		Use:           "search query",
+		Short:         "search for packages",
+		Args:          cobra.ExactArgs(1),
+		SilenceUsage:  true,
+		SilenceErrors: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			query := args[0]
+			client := pkggodevclient.New()
+			res, err := client.Search(query)
+			if err != nil {
+				return err
+			}
+			b, err := json.Marshal(res)
+			if err != nil {
+				return err
+			}
+			fmt.Println(string(b))
+			return nil
+		},
+	})
+	rootCmd.AddCommand(&cobra.Command{
+		Use:           "versions package [packages...]",
+		Short:         "show version information for the given package(s)",
+		Args:          cobra.MinimumNArgs(1),
+		SilenceUsage:  true,
+		SilenceErrors: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			client := pkggodevclient.New()
+			for _, pkg := range args {
+				versions, err := client.Versions(pkg)
+				if err != nil {
+					return err
+				}
+				b, err := json.Marshal(versions)
+				if err != nil {
+					return err
+				}
+				fmt.Println(string(b))
+			}
+			return nil
+		},
+	})
+	rootCmd.AddCommand(&cobra.Command{
+		Use:           "package-info package [packages...]",
+		Short:         "show package information for the given package(s)",
+		Args:          cobra.MinimumNArgs(1),
+		SilenceUsage:  true,
+		SilenceErrors: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			client := pkggodevclient.New()
+			for _, pkg := range args {
+				d, err := client.DescribePackage(pkg)
+				if err != nil {
+					return err
+				}
+				b, err := json.Marshal(d)
+				if err != nil {
+					return err
+				}
+				fmt.Println(string(b))
+			}
+			return nil
+		},
+	})
 }
 
 func main() {
-	cmd := os.Args[1]
-	cmdFunc, ok := commands[cmd]
-	if !ok {
-		complainAndDie(fmt.Sprintf("unknown command '%s'", cmd))
-	}
-	cmdFunc()
-}
-
-func search() {
-	if len(os.Args) != 3 {
-		complainAndDie("usage: pkggodev search <query>")
-	}
-	query := os.Args[2]
-	c := pkggodevclient.New()
-	res, err := c.Search(query)
+	err := rootCmd.Execute()
 	if err != nil {
-		complainAndDie(err)
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
-	b, err := json.Marshal(res)
-	if err != nil {
-		complainAndDie(err)
-	}
-	fmt.Println(string(b))
-}
-
-func versions() {
-	if len(os.Args) < 3 {
-		complainAndDie("must provide at least one package")
-	}
-	pkgs := os.Args[2:]
-	c := pkggodevclient.New()
-	for _, pkg := range pkgs {
-		versions, err := c.Versions(pkg)
-		if err != nil {
-			complainAndDie(err)
-		}
-		b, err := json.Marshal(versions)
-		if err != nil {
-			complainAndDie(err)
-		}
-		fmt.Println(string(b))
-	}
-}
-
-func importedBy() {
-	if len(os.Args) < 3 {
-		complainAndDie("must provide at least one package")
-	}
-	pkgs := os.Args[2:]
-	c := pkggodevclient.New()
-	for _, pkg := range pkgs {
-		importedBy, err := c.ImportedBy(pkg)
-		if err != nil {
-			complainAndDie(err)
-		}
-		b, err := json.Marshal(importedBy)
-		if err != nil {
-			complainAndDie(err)
-		}
-		fmt.Println(string(b))
-	}
-}
-
-func packageInfo() {
-	if len(os.Args) < 3 {
-		complainAndDie("must provide at least one package")
-	}
-	pkgs := os.Args[2:]
-	c := pkggodevclient.New()
-	for _, pkg := range pkgs {
-		d, err := c.DescribePackage(pkg)
-		if err != nil {
-			complainAndDie(err)
-		}
-		b, err := json.Marshal(d)
-		if err != nil {
-			complainAndDie(err)
-		}
-		fmt.Println(string(b))
-	}
-}
-
-func complainAndDie(v interface{}) {
-	fmt.Fprintf(os.Stderr, "%v\n", v)
-	os.Exit(1)
 }
