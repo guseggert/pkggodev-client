@@ -164,7 +164,7 @@ func (c *client) DescribePackage(req DescribePackageRequest) (*Package, error) {
 				// so if we've gotten here and package=false then
 				// return an error since it probably means
 				// that we parsed incorrectly
-				if !p.IsPackage {
+				if !p.IsPackage && !p.IsModule {
 					errs.Errs = append(errs.Errs, fmt.Errorf("IsPackage=false after parsing page for '%s', this probably indicates a parsing bug", req.Package))
 				}
 				return
