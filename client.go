@@ -155,6 +155,8 @@ func (c *client) DescribePackage(req DescribePackageRequest) (*Package, error) {
 	col.OnHTML(".UnitHeader-titleHeading", func(e *colly.HTMLElement) {
 		for next := e.DOM.Next(); ; next = next.Next() {
 			switch next.Text() {
+			case "command":
+				//pass
 			case "package":
 				p.IsPackage = true
 			case "module":
